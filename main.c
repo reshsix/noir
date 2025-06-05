@@ -414,29 +414,42 @@ reader(u8 *data, u16 w, u16 h)
 static u8 *
 init(const char *file, int *w, int *h)
 {
-    int c = 0;
-    u8 *ret = stbi_load(file, w, h, &c, 4);
-    if (*w > 65535 || *h > 65535)
-    {
-        free(ret);
-        ret = NULL;
-    }
+    u8 *ret = NULL;
 
-    if (ret)
+    size_t outl = strlen(file);
+    if (strcmp(&(file[outl - 4]), ".png") ||
+        strcmp(&(file[outl - 4]), ".tga") ||
+        strcmp(&(file[outl - 4]), ".bmp"))
     {
-        /* Loads font transposed and inverted */
-        for (int i = 33; i < 127; i++)
+        int c = 0;
+        ret = stbi_load(file, w, h, &c, 4);
+        if (*w > 65535 || *h > 65535)
         {
-            for (int j = 0; j < 16; j++)
-            {
-                u8 x = (i - 33) % 16;
-                u8 y = (i - 33) / 16;
+            free(ret);
+            ret = NULL;
+        }
 
-                u16 idx_a = (i * 16) + j;
-                u16 idx_b = (y * 256) + x + (j * 16);
-                font_d[idx_a] = ~(font[idx_b]);
+        if (ret)
+        {
+            /* Loads font transposed and inverted */
+            for (int i = 33; i < 127; i++)
+            {
+                for (int j = 0; j < 16; j++)
+                {
+                    u8 x = (i - 33) % 16;
+                    u8 y = (i - 33) / 16;
+
+                    u16 idx_a = (i * 16) + j;
+                    u16 idx_b = (y * 256) + x + (j * 16);
+                    font_d[idx_a] = ~(font[idx_b]);
+                }
             }
         }
+    }
+    else
+    {
+        fprintf(stderr, "Unsupported extension\n");
+        ret = false;
     }
 
     return ret;
@@ -461,18 +474,15 @@ main(int argc, char *argv[])
     {
         int ext = 0;
         size_t outl = strlen(argv[3]);
-        if (strcmp(&(argv[3][outl - 4]), ".jpg") ||
-            strcmp(&(argv[3][outl - 5]), ".jpeg"))
+        if (strcmp(&(argv[3][outl - 4]), ".png"))
             ext = 1;
-        else if (strcmp(&(argv[3][outl - 4]), ".png"))
-            ext = 2;
         else if (strcmp(&(argv[3][outl - 4]), ".tga"))
-            ext = 3;
+            ext = 2;
         else if (strcmp(&(argv[3][outl - 4]), ".bmp"))
-            ext = 4;
+            ext = 3;
         else
         {
-            fprintf(stderr, "Unknown output extension\n");
+            fprintf(stderr, "Unsupported extension\n");
             ret = false;
         }
 
@@ -486,15 +496,12 @@ main(int argc, char *argv[])
                 switch (ext)
                 {
                     case 1:
-                        stbi_write_jpg(argv[3], w, h, 4, data, 100);
-                        break;
-                    case 2:
                         stbi_write_png(argv[3], w, h, 4, data, w * 4);
                         break;
-                    case 3:
+                    case 2:
                         stbi_write_tga(argv[3], w, h, 4, data);
                         break;
-                    case 4:
+                    case 3:
                         stbi_write_bmp(argv[3], w, h, 4, data);
                         break;
                     default:
