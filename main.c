@@ -310,7 +310,7 @@ writer(u8 *data, u16 w, u16 h)
         {
             int c = fgetc(stdin);
 
-            if (c >= 32 || c <= 126)
+            if (c >= 32 && c <= 126)
                 line[line_c++] = c;
             else if (c != '\n' && c != EOF)
             {
@@ -474,11 +474,11 @@ main(int argc, char *argv[])
     {
         int ext = 0;
         size_t outl = strlen(argv[3]);
-        if (strcmp(&(argv[3][outl - 4]), ".png"))
+        if (strcmp(&(argv[3][outl - 4]), ".png") == 0)
             ext = 1;
-        else if (strcmp(&(argv[3][outl - 4]), ".tga"))
+        else if (strcmp(&(argv[3][outl - 4]), ".tga") == 0)
             ext = 2;
-        else if (strcmp(&(argv[3][outl - 4]), ".bmp"))
+        else if (strcmp(&(argv[3][outl - 4]), ".bmp") == 0)
             ext = 3;
         else
         {
